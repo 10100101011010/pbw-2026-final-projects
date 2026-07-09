@@ -1,0 +1,28 @@
+# OS junk files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor/IDE folders
+.vscode/
+.idea/
+
+# Node / JavaScript
+node_modules/
+npm-debug.log
+dist/
+build/
+
+# PHP
+vendor/
+
+# Logs and temp files
+*.log
+*.tmp
+
+# Environment/secrets
+.env
+
+# Compressed files
+*.zip
+*.rar
