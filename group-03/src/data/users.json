@@ -1,0 +1,56 @@
+[
+  {
+    "username": "admin_utama",
+    "password": "password123",
+    "role": "admin",
+    "name": "Admin Kece"
+  },
+  {
+    "username": "11122424",
+    "password": "password123",
+    "role": "mahasiswa",
+    "name": "Budi Santoso"
+  },
+  {
+    "username": "11122425",
+    "password": "password123",
+    "role": "mahasiswa",
+    "name": "Siti Aminah"
+  },
+  {
+    "username": "Leora",
+    "password": "annanmta",
+    "role": "admin",
+    "name": "Leora"
+  },
+  {
+    "username": "10124169",
+    "password": "annanmta",
+    "role": "mahasiswa",
+    "name": "Anna Nur"
+  },
+  {
+    "username": "Keykisty",
+    "password": "Keykisty123",
+    "role": "admin",
+    "name": "Admin"
+  },
+  {
+    "username": "11124245",
+    "password": "kiki123",
+    "role": "mahasiswa",
+    "name": "Rizky Poetri"
+  },
+  {
+    "username": "Mezeuzu",
+    "password": "Mezeuzu123",
+    "role": "admin",
+    "name": "Mezeuze"
+  },
+  {
+    "username": "11124437",
+    "password": "Muti123",
+    "role": "mahasiswa",
+    "name": "Siti Meutia"
+  }
+]
