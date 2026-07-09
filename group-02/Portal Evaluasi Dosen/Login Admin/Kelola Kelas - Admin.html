@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<!-- saved from url=(0054)http://localhost/evaluasi_dosen/admin/kelola_kelas.php -->
+<html lang="id"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    
+    <title>Kelola Kelas - Admin</title>
+    <link rel="stylesheet" href="./Kelola Kelas - Admin_files/style.css">
+    <style>
+        .form-inline {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        .form-inline input, .form-inline select {
+            padding: 8px 12px;
+            border: 2px solid #F0EEF1;
+            border-radius: 6px;
+            font-size: 13px;
+            background: #F8F6FA;
+        }
+        .form-inline input:focus, .form-inline select:focus {
+            border-color: #4A154B;
+            outline: none;
+        }
+        .form-inline button {
+            padding: 8px 20px;
+            background: #4A154B;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        .form-inline button:hover {
+            background: #6B206D;
+        }
+        .btn-edit {
+            background: #f39c12;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 4px;
+            text-decoration: none;
+            font-size: 12px;
+        }
+        .btn-hapus {
+            background: #e74c3c;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 4px;
+            text-decoration: none;
+            font-size: 12px;
+        }
+        .btn-edit:hover, .btn-hapus:hover {
+            opacity: 0.8;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 999;
+        }
+        .modal-content {
+            background: white;
+            max-width: 500px;
+            margin: 80px auto;
+            padding: 30px;
+            border-radius: 12px;
+        }
+        .modal-content h3 {
+            color: #4A154B;
+            margin-bottom: 20px;
+        }
+        .modal-content input, .modal-content select {
+            width: 100%;
+            padding: 10px;
+            margin: 8px 0;
+            border: 2px solid #F0EEF1;
+            border-radius: 6px;
+        }
+        .modal-content input:focus, .modal-content select:focus {
+            border-color: #4A154B;
+            outline: none;
+        }
+        .modal-content button {
+            padding: 10px 30px;
+            background: #4A154B;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        .modal-content button:hover {
+            background: #6B206D;
+        }
+        .modal-content .close {
+            float: right;
+            font-size: 24px;
+            cursor: pointer;
+            color: #999;
+        }
+        .modal-content .close:hover {
+            color: #333;
+        }
+        .top-bar {
+            background: linear-gradient(135deg, #4A154B 0%, #6B206D 100%);
+            color: white;
+            padding: 12px 0;
+            border-bottom: 3px solid #c9a8cc;
+            box-shadow: 0 2px 15px rgba(74, 21, 75, 0.2);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+        .top-bar .wrapper {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        .top-bar .logo-area {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+        .top-bar .logo-area .logo-icon {
+            font-size: 28px;
+            background: white;
+            color: #4A154B;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .top-bar .logo-area .logo-text .univ-name {
+            font-size: 10px;
+            color: #c9a8cc;
+            letter-spacing: 2px;
+            font-weight: 300;
+        }
+        .top-bar .logo-area .logo-text .portal-name {
+            font-size: 18px;
+            font-weight: 700;
+            color: white;
+        }
+        .top-bar .logo-area .logo-text .portal-name span {
+            color: #c9a8cc;
+        }
+        .top-bar .user-menu {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .top-bar .user-menu .user-name {
+            font-size: 13px;
+            color: #c9a8cc;
+        }
+        .top-bar .user-menu .user-name strong {
+            color: white;
+        }
+        .top-bar .user-menu .btn-logout {
+            background: rgba(255,255,255,0.12);
+            color: white;
+            padding: 6px 18px;
+            border-radius: 20px;
+            text-decoration: none;
+            font-size: 12px;
+            font-weight: 500;
+            transition: all 0.3s;
+            border: 1px solid rgba(255,255,255,0.08);
+        }
+        .top-bar .user-menu .btn-logout:hover {
+            background: rgba(255,255,255,0.25);
+            transform: scale(1.05);
+        }
+        .breadcrumb {
+            background: white;
+            padding: 10px 0;
+            border-bottom: 1px solid #eee;
+            margin-bottom: 25px;
+        }
+        .breadcrumb .wrapper {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            font-size: 13px;
+            color: #999;
+        }
+        .breadcrumb .wrapper a {
+            color: #4A154B;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .breadcrumb .wrapper a:hover {
+            color: #6B206D;
+            text-decoration: underline;
+        }
+        .breadcrumb .wrapper .separator {
+            margin: 0 8px;
+            color: #c9a8cc;
+        }
+        .footer {
+            background: #4A154B;
+            color: #c9a8cc;
+            text-align: center;
+            padding: 14px 0;
+            margin-top: 40px;
+            font-size: 12px;
+            border-top: 3px solid #c9a8cc;
+        }
+        .footer .wrapper {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        .footer span {
+            color: #c9a8cc;
+        }
+        .page-title {
+            margin-bottom: 25px;
+        }
+        .page-title h2 {
+            color: #4A154B;
+            font-size: 24px;
+            font-weight: 700;
+        }
+        .page-title p {
+            color: #999;
+            font-size: 14px;
+            margin-top: 4px;
+        }
+        .form-box {
+            background: white;
+            padding: 30px 35px;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        .form-box h3 {
+            color: #4A154B;
+            font-size: 17px;
+        }
+        .table-wrapper {
+            background: white;
+            border-radius: 12px;
+            overflow-x: auto;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        .table-wrapper table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 500px;
+        }
+        .table-wrapper thead {
+            background: linear-gradient(135deg, #4A154B, #6B206D);
+        }
+        .table-wrapper th {
+            color: white;
+            padding: 12px 16px;
+            text-align: left;
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+        .table-wrapper td {
+            padding: 12px 16px;
+            font-size: 13px;
+            border-bottom: 1px solid #f0eef1;
+        }
+        .table-wrapper tbody tr:hover {
+            background: #f8f6fa;
+        }
+        .table-wrapper tbody tr:last-child td {
+            border-bottom: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="top-bar">
+        <div class="wrapper">
+            <div class="logo-area">
+                <div class="logo-icon">UG</div>
+                <div class="logo-text">
+                    <span class="univ-name">UNIVERSITAS GUNADARMA</span>
+                    <span class="portal-name">Portal <span>Evaluasi</span></span>
+                </div>
+            </div>
+            <div class="user-menu">
+                <span class="user-name"> <strong>Administrator</strong> (Admin)</span>
+                <a href="http://localhost/evaluasi_dosen/logout.php" class="btn-logout">Keluar</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="breadcrumb">
+        <div class="wrapper">
+            <a href="http://localhost/evaluasi_dosen/admin/dashboard.php">Dashboard</a>
+            <span class="separator">›</span>
+            <span>Kelola Kelas</span>
+        </div>
+    </div>
+
+    <div class="wrapper">
+        <div class="page-title">
+            <h2> Kelola Kelas</h2>
+            <p>Tambah, edit, atau hapus data kelas</p>
+        </div>
+
+        <div class="form-box" style="margin-bottom: 30px;">
+            <h3 style="color:#4A154B; margin-bottom:15px;">➕ Tambah Kelas Baru</h3>
+            <form method="POST" class="form-inline">
+                <input type="text" name="nama" placeholder="Nama Kelas (contoh: 1A)" required="" fdprocessedid="357fpu">
+                <select name="semester" required="" fdprocessedid="mjvyjc">
+                    <option value="Ganjil">Ganjil</option>
+                    <option value="Genap">Genap</option>
+                </select>
+                <input type="text" name="tahun_akademik" placeholder="Tahun (contoh: 2025/2026)" required="" fdprocessedid="ul8dw">
+                <button type="submit" name="tambah" fdprocessedid="hcfsh2g">Simpan</button>
+            </form>
+        </div>
+
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th>No</th>
+                        <th>Nama Kelas</th>
+                        <th>Semester</th>
+                        <th>Tahun Akademik</th>
+                        <th>Aksi</th>
+                    </tr>
+                </thead>
+                <tbody>
+                                        <tr>
+                        <td>1</td>
+                        <td><strong>1DC24</strong></td>
+                        <td>Genap</td>
+                        <td>2025/2026</td>
+                        <td>
+                            <a href="http://localhost/evaluasi_dosen/admin/kelola_kelas.php?edit=4" class="btn-edit"> Edit</a>
+                            <a href="http://localhost/evaluasi_dosen/admin/kelola_kelas.php?hapus=4" class="btn-hapus" onclick="return confirm(&#39;Yakin hapus?&#39;)"> Hapus</a>
+                        </td>
+                    </tr>
+                                        <tr>
+                        <td>2</td>
+                        <td><strong>1KA19</strong></td>
+                        <td>Ganjil</td>
+                        <td>2025/2026</td>
+                        <td>
+                            <a href="http://localhost/evaluasi_dosen/admin/kelola_kelas.php?edit=3" class="btn-edit"> Edit</a>
+                            <a href="http://localhost/evaluasi_dosen/admin/kelola_kelas.php?hapus=3" class="btn-hapus" onclick="return confirm(&#39;Yakin hapus?&#39;)"> Hapus</a>
+                        </td>
+                    </tr>
+                                        <tr>
+                        <td>3</td>
+                        <td><strong>1KA20</strong></td>
+                        <td>Ganjil</td>
+                        <td>2025/2026</td>
+                        <td>
+                            <a href="http://localhost/evaluasi_dosen/admin/kelola_kelas.php?edit=1" class="btn-edit"> Edit</a>
+                            <a href="http://localhost/evaluasi_dosen/admin/kelola_kelas.php?hapus=1" class="btn-hapus" onclick="return confirm(&#39;Yakin hapus?&#39;)"> Hapus</a>
+                        </td>
+                    </tr>
+                                        <tr>
+                        <td>4</td>
+                        <td><strong>1KA34</strong></td>
+                        <td>Ganjil</td>
+                        <td>2023/2024</td>
+                        <td>
+                            <a href="http://localhost/evaluasi_dosen/admin/kelola_kelas.php?edit=10" class="btn-edit"> Edit</a>
+                            <a href="http://localhost/evaluasi_dosen/admin/kelola_kelas.php?hapus=10" class="btn-hapus" onclick="return confirm(&#39;Yakin hapus?&#39;)"> Hapus</a>
+                        </td>
+                    </tr>
+                                        <tr>
+                        <td>5</td>
+                        <td><strong>1KB28</strong></td>
+                        <td>Ganjil</td>
+                        <td>2025/2026</td>
+                        <td>
+                            <a href="http://localhost/evaluasi_dosen/admin/kelola_kelas.php?edit=5" class="btn-edit"> Edit</a>
+                            <a href="http://localhost/evaluasi_dosen/admin/kelola_kelas.php?hapus=5" class="btn-hapus" onclick="return confirm(&#39;Yakin hapus?&#39;)"> Hapus</a>
+                        </td>
+                    </tr>
+                                        <tr>
+                        <td>6</td>
+                        <td><strong>2KA34</strong></td>
+                        <td>Genap</td>
+                        <td>2025/2026</td>
+                        <td>
+                            <a href="http://localhost/evaluasi_dosen/admin/kelola_kelas.php?edit=2" class="btn-edit"> Edit</a>
+                            <a href="http://localhost/evaluasi_dosen/admin/kelola_kelas.php?hapus=2" class="btn-hapus" onclick="return confirm(&#39;Yakin hapus?&#39;)"> Hapus</a>
+                        </td>
+                    </tr>
+                                        <tr>
+                        <td>7</td>
+                        <td><strong>2KB04</strong></td>
+                        <td>Genap</td>
+                        <td>2025/2026</td>
+                        <td>
+                            <a href="http://localhost/evaluasi_dosen/admin/kelola_kelas.php?edit=7" class="btn-edit"> Edit</a>
+                            <a href="http://localhost/evaluasi_dosen/admin/kelola_kelas.php?hapus=7" class="btn-hapus" onclick="return confirm(&#39;Yakin hapus?&#39;)"> Hapus</a>
+                        </td>
+                    </tr>
+                                        <tr>
+                        <td>8</td>
+                        <td><strong>3DC02</strong></td>
+                        <td>Genap</td>
+                        <td>2025/2026</td>
+                        <td>
+                            <a href="http://localhost/evaluasi_dosen/admin/kelola_kelas.php?edit=9" class="btn-edit"> Edit</a>
+                            <a href="http://localhost/evaluasi_dosen/admin/kelola_kelas.php?hapus=9" class="btn-hapus" onclick="return confirm(&#39;Yakin hapus?&#39;)"> Hapus</a>
+                        </td>
+                    </tr>
+                                        <tr>
+                        <td>9</td>
+                        <td><strong>3DC08</strong></td>
+                        <td>Ganjil</td>
+                        <td>2025/2026</td>
+                        <td>
+                            <a href="http://localhost/evaluasi_dosen/admin/kelola_kelas.php?edit=6" class="btn-edit"> Edit</a>
+                            <a href="http://localhost/evaluasi_dosen/admin/kelola_kelas.php?hapus=6" class="btn-hapus" onclick="return confirm(&#39;Yakin hapus?&#39;)"> Hapus</a>
+                        </td>
+                    </tr>
+                                        <tr>
+                        <td>10</td>
+                        <td><strong>3KB11</strong></td>
+                        <td>Genap</td>
+                        <td>2025/2026</td>
+                        <td>
+                            <a href="http://localhost/evaluasi_dosen/admin/kelola_kelas.php?edit=8" class="btn-edit"> Edit</a>
+                            <a href="http://localhost/evaluasi_dosen/admin/kelola_kelas.php?hapus=8" class="btn-hapus" onclick="return confirm(&#39;Yakin hapus?&#39;)"> Hapus</a>
+                        </td>
+                    </tr>
+                                    </tbody>
+            </table>
+        </div>
+    </div>
+
+    
+    <div class="footer">
+        <div class="wrapper">
+            <span>© 2026 Universitas Gunadarma</span>
+            <span>|</span>
+            <span>Portal Evaluasi Dosen</span>
+            <span>|</span>
+            <span>BAAK - Gunadarma</span>
+        </div>
+    </div>
+
+<span id="PING_IFRAME_FORM_DETECTION" style="display: none;"></span></body></html>

@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<!-- saved from url=(0051)http://localhost/evaluasi_dosen/admin/responden.php -->
+<html lang="id"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    
+    <title>Daftar Responden - Admin</title>
+    <link rel="stylesheet" href="./Daftar Responden - Admin_files/style.css">
+</head>
+<body>
+    <div class="top-bar">
+        <div class="wrapper">
+            <div class="logo-area">
+                <div class="logo-icon">UG</div>
+                <div class="logo-text">
+                    <span class="univ-name">UNIVERSITAS GUNADARMA</span>
+                    <span class="portal-name">Portal Evaluasi</span>
+                </div>
+            </div>
+            <div class="user-menu">
+                <span class="user-name"><strong>Administrator</strong> (Admin)</span>
+                <a href="http://localhost/evaluasi_dosen/logout.php" class="btn-logout">Keluar</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- BREADCRUMB -->
+    <div class="breadcrumb">
+        <div class="wrapper">
+            <a href="http://localhost/evaluasi_dosen/admin/dashboard.php">Dashboard</a>
+            <span class="separator">›</span>
+            <span>Daftar Responden</span>
+        </div>
+    </div>
+
+    <div class="wrapper">
+        <div class="page-title">
+            <h2>Daftar Responden</h2>
+            <p>Lihat siapa saja yang sudah mengisi evaluasi</p>
+        </div>
+
+        <a href="http://localhost/evaluasi_dosen/admin/dashboard.php" class="btn-back">← Kembali ke Dashboard</a>
+
+        <div class="tab-group">
+            <a href="http://localhost/evaluasi_dosen/admin/responden.php?type=dosen" class="active">Responden Dosen</a>
+        </div>
+
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th>No</th>
+                        <th>Nama Dosen</th>
+                        <th>Mahasiswa</th>
+                        <th>NPM</th>
+                        <th>Semester</th>
+                        <th>Tanggal</th>
+                        <th>Nilai</th>
+                        <th>Komentar</th>
+                    </tr>
+                </thead>
+                <tbody>
+
+                <!-- QUERY SQL -->
+                                        <tr>
+                        <td>1</td>
+                        <td><strong>Dr. Ahmad Fauzi</strong></td>
+                        <td>Mpruy</td>
+                        <td>11124084</td>
+                        <td>Ganjil 2025/2026</td>
+                        <td>07-07-2026</td>
+                        <td>5 / 5</td>
+                        <td>y</td>
+                    </tr>
+                                        <tr>
+                        <td>2</td>
+                        <td><strong>Dr. Ahmad Fauzi</strong></td>
+                        <td>Ayay</td>
+                        <td>10124226</td>
+                        <td>Ganjil 2025/2026</td>
+                        <td>07-07-2026</td>
+                        <td>4.7 / 5</td>
+                        <td>aka</td>
+                    </tr>
+                                    </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- FOOTER -->
+    <div class="footer">
+        <div class="wrapper">
+            <span>2026 Universitas Gunadarma</span>
+            <span>|</span>
+            <span>Portal Evaluasi Dosen</span>
+            <span>|</span>
+            <span>BAAK - Gunadarma</span>
+        </div>
+    </div>
+
+</body></html>
