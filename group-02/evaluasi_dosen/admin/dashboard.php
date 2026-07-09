@@ -1,0 +1,345 @@
+<?php
+session_start();
+if (!isset($_SESSION['role']) || $_SESSION['role'] != 'admin') {
+    header("Location: ../index.php");
+    exit();
+}
+require '../db.php';
+
+$total_mhs    = mysqli_fetch_row(mysqli_query($conn, "SELECT COUNT(*) FROM mahasiswa"))[0];
+$total_dosen  = mysqli_fetch_row(mysqli_query($conn, "SELECT COUNT(*) FROM dosen"))[0];
+$total_matkul = mysqli_fetch_row(mysqli_query($conn, "SELECT COUNT(*) FROM matakuliah"))[0];
+$total_kelas  = mysqli_fetch_row(mysqli_query($conn, "SELECT COUNT(*) FROM kelas"))[0];
+$total_eval   = mysqli_fetch_row(mysqli_query($conn, "SELECT COUNT(*) FROM evaluasi_dosen"))[0];
+?>
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard Admin - Evaluasi Dosen</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <style>
+        .top-bar {
+            background: linear-gradient(135deg, #4A154B 0%, #6B206D 100%);
+            color: white;
+            padding: 12px 0;
+            border-bottom: 3px solid #c9a8cc;
+            box-shadow: 0 2px 15px rgba(74, 21, 75, 0.2);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+        .top-bar .wrapper {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        .top-bar .logo-area {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+        .top-bar .logo-area .logo-icon {
+            font-size: 28px;
+            background: white;
+            color: #4A154B;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .top-bar .logo-area .logo-text .univ-name {
+            font-size: 10px;
+            color: #c9a8cc;
+            letter-spacing: 2px;
+            font-weight: 300;
+        }
+        .top-bar .logo-area .logo-text .portal-name {
+            font-size: 18px;
+            font-weight: 700;
+            color: white;
+        }
+        .top-bar .logo-area .logo-text .portal-name span {
+            color: #c9a8cc;
+        }
+        .top-bar .user-menu {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .top-bar .user-menu .user-name {
+            font-size: 13px;
+            color: #c9a8cc;
+        }
+        .top-bar .user-menu .user-name strong {
+            color: white;
+        }
+        .top-bar .user-menu .btn-logout {
+            background: rgba(255,255,255,0.12);
+            color: white;
+            padding: 6px 18px;
+            border-radius: 20px;
+            text-decoration: none;
+            font-size: 12px;
+            font-weight: 500;
+            transition: all 0.3s;
+            border: 1px solid rgba(255,255,255,0.08);
+        }
+        .top-bar .user-menu .btn-logout:hover {
+            background: rgba(255,255,255,0.25);
+            transform: scale(1.05);
+        }
+        .breadcrumb {
+            background: white;
+            padding: 10px 0;
+            border-bottom: 1px solid #eee;
+            margin-bottom: 25px;
+        }
+        .breadcrumb .wrapper {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            font-size: 13px;
+            color: #999;
+        }
+        .breadcrumb .wrapper a {
+            color: #4A154B;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .breadcrumb .wrapper a:hover {
+            color: #6B206D;
+            text-decoration: underline;
+        }
+        .breadcrumb .wrapper .separator {
+            margin: 0 8px;
+            color: #c9a8cc;
+        }
+        .footer {
+            background: #4A154B;
+            color: #c9a8cc;
+            text-align: center;
+            padding: 14px 0;
+            margin-top: 40px;
+            font-size: 12px;
+            border-top: 3px solid #c9a8cc;
+        }
+        .footer .wrapper {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        .footer span {
+            color: #c9a8cc;
+        }
+        .page-title {
+            margin-bottom: 25px;
+        }
+        .page-title h2 {
+            color: #4A154B;
+            font-size: 24px;
+            font-weight: 700;
+        }
+        .page-title p {
+            color: #999;
+            font-size: 14px;
+            margin-top: 4px;
+        }
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 16px;
+            margin-bottom: 30px;
+        }
+        .stat-box {
+    background: #7b3090d5;
+    padding: 20px 16px;
+    border-radius: 12px;
+    text-align: center;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    border-bottom: 3px solid #4A154B;
+    transition: transform 0.3s, box-shadow 0.3s;
+}
+.stat-box:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 25px rgba(74, 21, 75, 0.1);
+}
+.stat-box .icon-stat {
+    font-size: 24px;
+    margin-bottom: 4px;
+}
+.stat-box .angka {
+    font-size: 32px;
+    font-weight: 700;
+    color: white;
+    line-height: 1.2;
+}
+.stat-box .label {
+    color: white;
+    font-size: 12px;
+    margin-top: 4px;
+    font-weight: 500;
+
+        }
+        .menu-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+            gap: 18px;
+            margin-top: 10px;
+        }
+        .menu-card {
+            background: white;
+            padding: 25px 18px;
+            border-radius: 12px;
+            text-align: center;
+            text-decoration: none;
+            color: inherit;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            border-top: 3px solid #4A154B;
+            transition: all 0.3s;
+        }
+        .menu-card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 12px 40px rgba(74, 21, 75, 0.12);
+            background: linear-gradient(135deg, #4A154B, #6B206D);
+            color: white;
+        }
+        .menu-card .icon {
+            font-size: 30px;
+            margin-bottom: 8px;
+        }
+        .menu-card h3 {
+            color: #4A154B;
+            margin-bottom: 4px;
+            font-size: 14px;
+        }
+        .menu-card p {
+            color: #aaa;
+            font-size: 11px;
+        }
+        .menu-card:hover h3,
+        .menu-card:hover p {
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="top-bar">
+        <div class="wrapper">
+            <div class="logo-area">
+                <div class="logo-icon">UG</div>
+                <div class="logo-text">
+                    <span class="univ-name">UNIVERSITAS GUNADARMA</span>
+                    <span class="portal-name">Portal <span>Evaluasi</span></span>
+                </div>
+            </div>
+            <div class="user-menu">
+                <span class="user-name"> <strong><?= $_SESSION['user_nama'] ?></strong> (Admin)</span>
+                <a href="../logout.php" class="btn-logout">Keluar</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="breadcrumb">
+        <div class="wrapper">
+            <a href="dashboard.php">Dashboard</a>
+            <span class="separator">›</span>
+            <span>Admin Panel</span>
+        </div>
+    </div>
+
+    <div class="wrapper">
+        <div class="page-title">
+            <h2> Dashboard Administrator</h2>
+            <p>Selamat datang di portal evaluasi dosen Universitas Gunadarma</p>
+        </div>
+
+        <div class="stat-grid">
+            <div class="stat-box">
+                <div class="icon-stat"></div>
+                <div class="angka"><?= $total_mhs ?></div>
+                <div class="label">Mahasiswa</div>
+            </div>
+            <div class="stat-box">
+                <div class="icon-stat"></div>
+                <div class="angka"><?= $total_dosen ?></div>
+                <div class="label">Dosen</div>
+            </div>
+            <div class="stat-box">
+                <div class="icon-stat"></div>
+                <div class="angka"><?= $total_matkul ?></div>
+                <div class="label">Matakuliah</div>
+            </div>
+            <div class="stat-box">
+                <div class="icon-stat"></div>
+                <div class="angka"><?= $total_kelas ?></div>
+                <div class="label">Kelas</div>
+            </div>
+            <div class="stat-box">
+                <div class="icon-stat"></div>
+                <div class="angka"><?= $total_eval ?></div>
+                <div class="label">Evaluasi</div>
+            </div>
+        </div>
+
+        <div class="menu-grid">
+            <a href="lihat_hasil.php?type=dosen" class="menu-card">
+                <div class="icon"></div>
+                <h3>Hasil Evaluasi</h3>
+                <p>Rekap nilai dosen</p>
+            </a>
+            <a href="responden.php" class="menu-card">
+                <div class="icon"></div>
+                <h3>Daftar Responden</h3>
+                <p>Siapa sudah menjawab</p>
+            </a>
+            <a href="kelola_dosen.php" class="menu-card">
+                <div class="icon"></div>
+                <h3>Kelola Dosen</h3>
+                <p>Tambah/edit/hapus</p>
+            </a>
+            <a href="kelola_matkul.php" class="menu-card">
+                <div class="icon"></div>
+                <h3>Kelola Matakuliah</h3>
+                <p>Tambah/edit/hapus</p>
+            </a>
+            <a href="kelola_mahasiswa.php" class="menu-card">
+                <div class="icon"></div>
+                <h3>Kelola Mahasiswa</h3>
+                <p>Tambah/edit/hapus</p>
+            </a>
+            <a href="kelola_kelas.php" class="menu-card">
+                <div class="icon"></div>
+                <h3>Kelola Kelas</h3>
+                <p>Tambah/edit/hapus</p>
+            </a>
+            <a href="kelola_pertanyaan.php" class="menu-card">
+                <div class="icon"></div>
+                <h3>Kelola Pertanyaan</h3>
+                <p>Edit pertanyaan</p>
+            </a>
+        </div>
+    </div>
+
+     <div class="footer">
+        <div class="wrapper">
+            <span>© 2026 Universitas Gunadarma</span>
+            <span>|</span>
+            <span>Portal Evaluasi Dosen</span>
+            <span>|</span>
+            <span>BAAK - Gunadarma</span>
+        </div>
+    </div>
+</div>
+</html>
