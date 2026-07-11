@@ -1,0 +1,458 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id                String            @id @default(uuid()) @db.Uuid
+  email             String            @unique
+  passwordHash      String            @map("password_hash")
+  role              UserRole
+  status            UserStatus        @default(ACTIVE)
+  lastLoginAt       DateTime?         @map("last_login_at") @db.Timestamptz(3)
+  createdAt         DateTime          @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt         DateTime          @updatedAt @map("updated_at") @db.Timestamptz(3)
+  deletedAt         DateTime?         @map("deleted_at") @db.Timestamptz(3)
+  auditLogs         AuditLog[]
+  decidedRequests   BookingRequest[]  @relation("BookingRequestDecision")
+  approvedBookings  Booking[]         @relation("BookingApproval")
+  cancelledBookings Booking[]         @relation("BookingCancellation")
+  uploadedFiles     FileAttachment[]
+  lecturerProfile   LecturerProfile?
+  notifications     Notification[]    @relation("UserNotifications")
+  refreshTokens     RefreshToken[]
+  uploadedRevisions RevisionVersion[]
+  sessionNotes      SessionNote[]
+  studentProfile    StudentProfile?
+
+  @@index([role, status])
+  @@map("users")
+}
+
+model StudentProfile {
+  id              String              @id @default(uuid()) @db.Uuid
+  userId          String              @unique @map("user_id") @db.Uuid
+  npm             String              @unique
+  fullName        String              @map("full_name")
+  studyProgram    String              @map("study_program")
+  completedSks    Int                 @map("completed_sks")
+  piCompleted     Boolean             @default(false) @map("pi_completed")
+  isSarMag        Boolean             @default(false) @map("is_sar_mag")
+  academicStatus  AcademicStatus      @default(NOT_ELIGIBLE) @map("academic_status")
+  syncedAt        DateTime            @default(now()) @map("synced_at") @db.Timestamptz(3)
+  createdAt       DateTime            @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt       DateTime            @updatedAt @map("updated_at") @db.Timestamptz(3)
+  bookingRequests BookingRequest[]
+  bookings        Booking[]
+  workspaces      SessionWorkspace[]
+  user            User                @relation(fields: [userId], references: [id])
+  supervisors     StudentSupervisor[]
+
+  @@index([userId])
+  @@map("student_profiles")
+}
+
+model LecturerProfile {
+  id                     String                  @id @default(uuid()) @db.Uuid
+  userId                 String                  @unique @map("user_id") @db.Uuid
+  lecturerCode           String                  @unique @map("lecturer_code")
+  fullName               String                  @map("full_name")
+  academicTitle          String                  @map("academic_title")
+  department             String
+  officeLocation         String?                 @map("office_location")
+  consultationNotes      String?                 @map("consultation_notes")
+  syncedAt               DateTime                @default(now()) @map("synced_at") @db.Timestamptz(3)
+  createdAt              DateTime                @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt              DateTime                @updatedAt @map("updated_at") @db.Timestamptz(3)
+  availabilityExceptions AvailabilityException[]
+  availabilityWindows    AvailabilityWindow[]
+  bookingRequests        BookingRequest[]
+  bookings               Booking[]
+  feedback               LecturerFeedback[]
+  user                   User                    @relation(fields: [userId], references: [id])
+  workspaces             SessionWorkspace[]
+  supervisedStudents     StudentSupervisor[]
+
+  @@index([userId])
+  @@map("lecturer_profiles")
+}
+
+model StudentSupervisor {
+  id         String          @id @default(uuid()) @db.Uuid
+  studentId  String          @map("student_id") @db.Uuid
+  lecturerId String          @map("lecturer_id") @db.Uuid
+  order      SupervisorOrder @map("supervisor_order")
+  isActive   Boolean         @default(true) @map("is_active")
+  syncedAt   DateTime        @default(now()) @map("synced_at") @db.Timestamptz(3)
+  createdAt  DateTime        @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt  DateTime        @updatedAt @map("updated_at") @db.Timestamptz(3)
+  lecturer   LecturerProfile @relation(fields: [lecturerId], references: [id])
+  student    StudentProfile  @relation(fields: [studentId], references: [id])
+
+  @@unique([studentId, order])
+  @@unique([studentId, lecturerId])
+  @@index([studentId, isActive])
+  @@index([lecturerId, isActive])
+  @@map("student_supervisors")
+}
+
+model RefreshToken {
+  id          String    @id @default(uuid()) @db.Uuid
+  userId      String    @map("user_id") @db.Uuid
+  tokenHash   String    @unique @map("token_hash")
+  expiresAt   DateTime  @map("expires_at") @db.Timestamptz(3)
+  revokedAt   DateTime? @map("revoked_at") @db.Timestamptz(3)
+  createdByIp String?   @map("created_by_ip")
+  userAgent   String?   @map("user_agent")
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+  @@map("refresh_tokens")
+}
+
+model AvailabilityWindow {
+  id                  String                  @id @default(uuid()) @db.Uuid
+  lecturerId          String                  @map("lecturer_id") @db.Uuid
+  windowType          AvailabilityWindowType  @map("window_type")
+  dayOfWeek           Int?                    @map("day_of_week")
+  specificDate        DateTime?               @map("specific_date") @db.Date
+  startTime           String                  @map("start_time") @db.VarChar(5)
+  endTime             String                  @map("end_time") @db.VarChar(5)
+  slotDurationMinutes Int                     @map("slot_duration_minutes")
+  recurrenceStartDate DateTime?               @map("recurrence_start_date") @db.Date
+  recurrenceEndDate   DateTime?               @map("recurrence_end_date") @db.Date
+  isActive            Boolean                 @default(true) @map("is_active")
+  createdAt           DateTime                @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt           DateTime                @updatedAt @map("updated_at") @db.Timestamptz(3)
+  deletedAt           DateTime?               @map("deleted_at") @db.Timestamptz(3)
+  exceptions          AvailabilityException[]
+  lecturer            LecturerProfile         @relation(fields: [lecturerId], references: [id])
+  bookingRequests     BookingRequest[]
+
+  @@index([lecturerId, isActive])
+  @@index([lecturerId, windowType, dayOfWeek])
+  @@index([lecturerId, specificDate])
+  @@map("availability_windows")
+}
+
+model AvailabilityException {
+  id                          String                    @id @default(uuid()) @db.Uuid
+  availabilityWindowId        String                    @map("availability_window_id") @db.Uuid
+  lecturerId                  String                    @map("lecturer_id") @db.Uuid
+  exceptionDate               DateTime                  @map("exception_date") @db.Date
+  exceptionType               AvailabilityExceptionType @map("exception_type")
+  overrideStartTime           String?                   @map("override_start_time") @db.VarChar(5)
+  overrideEndTime             String?                   @map("override_end_time") @db.VarChar(5)
+  overrideSlotDurationMinutes Int?                      @map("override_slot_duration_minutes")
+  reason                      String?
+  createdAt                   DateTime                  @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt                   DateTime                  @updatedAt @map("updated_at") @db.Timestamptz(3)
+  availabilityWindow          AvailabilityWindow        @relation(fields: [availabilityWindowId], references: [id])
+  lecturer                    LecturerProfile           @relation(fields: [lecturerId], references: [id])
+
+  @@unique([availabilityWindowId, exceptionDate])
+  @@index([availabilityWindowId, exceptionDate])
+  @@index([lecturerId, exceptionDate])
+  @@map("availability_exceptions")
+}
+
+model BookingRequest {
+  id                   String               @id @default(uuid()) @db.Uuid
+  studentId            String               @map("student_id") @db.Uuid
+  lecturerId           String               @map("lecturer_id") @db.Uuid
+  availabilityWindowId String?              @map("availability_window_id") @db.Uuid
+  requestedStartAt     DateTime             @map("requested_start_at") @db.Timestamptz(3)
+  requestedEndAt       DateTime             @map("requested_end_at") @db.Timestamptz(3)
+  status               BookingRequestStatus @default(PENDING)
+  discussionTopic      String?              @map("discussion_topic")
+  studentNotes         String?              @map("student_notes")
+  rejectionReason      String?              @map("rejection_reason")
+  expiresAt            DateTime?            @map("expires_at") @db.Timestamptz(3)
+  decidedAt            DateTime?            @map("decided_at") @db.Timestamptz(3)
+  decidedByUserId      String?              @map("decided_by_user_id") @db.Uuid
+  createdAt            DateTime             @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt            DateTime             @updatedAt @map("updated_at") @db.Timestamptz(3)
+  cancelledAt          DateTime?            @map("cancelled_at") @db.Timestamptz(3)
+  availabilityWindow   AvailabilityWindow?  @relation(fields: [availabilityWindowId], references: [id])
+  decidedBy            User?                @relation("BookingRequestDecision", fields: [decidedByUserId], references: [id])
+  lecturer             LecturerProfile      @relation(fields: [lecturerId], references: [id])
+  student              StudentProfile       @relation(fields: [studentId], references: [id])
+  booking              Booking?
+
+  @@index([studentId, status, requestedStartAt])
+  @@index([lecturerId, status, requestedStartAt])
+  @@index([status, expiresAt])
+  @@index([lecturerId, requestedStartAt, requestedEndAt])
+  @@map("booking_requests")
+}
+
+model Booking {
+  id                 String            @id @default(uuid()) @db.Uuid
+  bookingRequestId   String            @unique @map("booking_request_id") @db.Uuid
+  studentId          String            @map("student_id") @db.Uuid
+  lecturerId         String            @map("lecturer_id") @db.Uuid
+  startAt            DateTime          @map("start_at") @db.Timestamptz(3)
+  endAt              DateTime          @map("end_at") @db.Timestamptz(3)
+  status             BookingStatus     @default(APPROVED)
+  cancellationReason String?           @map("cancellation_reason")
+  approvedAt         DateTime          @default(now()) @map("approved_at") @db.Timestamptz(3)
+  approvedByUserId   String?           @map("approved_by_user_id") @db.Uuid
+  cancelledAt        DateTime?         @map("cancelled_at") @db.Timestamptz(3)
+  cancelledByUserId  String?           @map("cancelled_by_user_id") @db.Uuid
+  completedAt        DateTime?         @map("completed_at") @db.Timestamptz(3)
+  reminderSentAt     DateTime?         @map("reminder_sent_at") @db.Timestamptz(3)
+  createdAt          DateTime          @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt          DateTime          @updatedAt @map("updated_at") @db.Timestamptz(3)
+  approvedBy         User?             @relation("BookingApproval", fields: [approvedByUserId], references: [id])
+  bookingRequest     BookingRequest    @relation(fields: [bookingRequestId], references: [id])
+  cancelledBy        User?             @relation("BookingCancellation", fields: [cancelledByUserId], references: [id])
+  lecturer           LecturerProfile   @relation(fields: [lecturerId], references: [id])
+  student            StudentProfile    @relation(fields: [studentId], references: [id])
+  workspace          SessionWorkspace?
+
+  @@index([studentId, status, startAt])
+  @@index([lecturerId, status, startAt])
+  @@index([startAt, endAt])
+  @@map("bookings")
+}
+
+model SessionWorkspace {
+  id          String             @id @default(uuid()) @db.Uuid
+  bookingId   String             @unique @map("booking_id") @db.Uuid
+  studentId   String             @map("student_id") @db.Uuid
+  lecturerId  String             @map("lecturer_id") @db.Uuid
+  status      WorkspaceStatus    @default(OPEN)
+  openedAt    DateTime           @default(now()) @map("opened_at") @db.Timestamptz(3)
+  completedAt DateTime?          @map("completed_at") @db.Timestamptz(3)
+  lockedAt    DateTime?          @map("locked_at") @db.Timestamptz(3)
+  createdAt   DateTime           @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt   DateTime           @updatedAt @map("updated_at") @db.Timestamptz(3)
+  attachments FileAttachment[]
+  feedback    LecturerFeedback[]
+  revisions   RevisionVersion[]
+  notes       SessionNote[]
+  booking     Booking            @relation(fields: [bookingId], references: [id])
+  lecturer    LecturerProfile    @relation(fields: [lecturerId], references: [id])
+  student     StudentProfile     @relation(fields: [studentId], references: [id])
+
+  @@index([studentId, createdAt])
+  @@index([lecturerId, createdAt])
+  @@map("session_workspaces")
+}
+
+model SessionNote {
+  id           String           @id @default(uuid()) @db.Uuid
+  workspaceId  String           @map("workspace_id") @db.Uuid
+  authorUserId String           @map("author_user_id") @db.Uuid
+  title        String
+  notes        String
+  createdAt    DateTime         @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt    DateTime         @updatedAt @map("updated_at") @db.Timestamptz(3)
+  author       User             @relation(fields: [authorUserId], references: [id])
+  workspace    SessionWorkspace @relation(fields: [workspaceId], references: [id])
+
+  @@index([workspaceId, createdAt])
+  @@map("session_notes")
+}
+
+model LecturerFeedback {
+  id          String             @id @default(uuid()) @db.Uuid
+  workspaceId String             @map("workspace_id") @db.Uuid
+  lecturerId  String             @map("lecturer_id") @db.Uuid
+  feedback    String
+  visibility  FeedbackVisibility @default(STUDENT_VISIBLE)
+  createdAt   DateTime           @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt   DateTime           @updatedAt @map("updated_at") @db.Timestamptz(3)
+  attachments FileAttachment[]
+  lecturer    LecturerProfile    @relation(fields: [lecturerId], references: [id])
+  workspace   SessionWorkspace   @relation(fields: [workspaceId], references: [id])
+
+  @@index([workspaceId, createdAt])
+  @@map("lecturer_feedback")
+}
+
+model RevisionVersion {
+  id               String           @id @default(uuid()) @db.Uuid
+  workspaceId      String           @map("workspace_id") @db.Uuid
+  uploadedByUserId String           @map("uploaded_by_user_id") @db.Uuid
+  versionNumber    Int              @map("version_number")
+  title            String
+  description      String?
+  status           RevisionStatus   @default(UPLOADED)
+  uploadedAt       DateTime         @default(now()) @map("uploaded_at") @db.Timestamptz(3)
+  createdAt        DateTime         @default(now()) @map("created_at") @db.Timestamptz(3)
+  attachments      FileAttachment[]
+  uploadedBy       User             @relation(fields: [uploadedByUserId], references: [id])
+  workspace        SessionWorkspace @relation(fields: [workspaceId], references: [id])
+
+  @@unique([workspaceId, versionNumber])
+  @@index([workspaceId, uploadedAt])
+  @@map("revision_versions")
+}
+
+model FileAttachment {
+  id                String            @id @default(uuid()) @db.Uuid
+  workspaceId       String            @map("workspace_id") @db.Uuid
+  revisionVersionId String?           @map("revision_version_id") @db.Uuid
+  feedbackId        String?           @map("feedback_id") @db.Uuid
+  uploadedByUserId  String            @map("uploaded_by_user_id") @db.Uuid
+  originalFilename  String            @map("original_filename")
+  mimeType          String            @map("mime_type")
+  sizeBytes         Int               @map("size_bytes")
+  attachmentType    AttachmentType    @map("attachment_type")
+  createdAt         DateTime          @default(now()) @map("created_at") @db.Timestamptz(3)
+  deletedAt         DateTime?         @map("deleted_at") @db.Timestamptz(3)
+  fileContent       Bytes?            @map("file_content")
+  feedback          LecturerFeedback? @relation(fields: [feedbackId], references: [id], onDelete: Restrict)
+  revisionVersion   RevisionVersion?  @relation(fields: [revisionVersionId], references: [id], onDelete: Restrict)
+  uploadedBy        User              @relation(fields: [uploadedByUserId], references: [id])
+  workspace         SessionWorkspace  @relation(fields: [workspaceId], references: [id])
+
+  @@index([workspaceId, createdAt])
+  @@map("file_attachments")
+}
+
+model Notification {
+  id              String                 @id @default(uuid()) @db.Uuid
+  recipientUserId String                 @map("recipient_user_id") @db.Uuid
+  type            NotificationType
+  title           String
+  message         String
+  entityType      String?                @map("entity_type")
+  entityId        String?                @map("entity_id") @db.Uuid
+  readAt          DateTime?              @map("read_at") @db.Timestamptz(3)
+  createdAt       DateTime               @default(now()) @map("created_at") @db.Timestamptz(3)
+  emailAttempts   EmailDeliveryAttempt[]
+  recipient       User                   @relation("UserNotifications", fields: [recipientUserId], references: [id])
+
+  @@index([recipientUserId, readAt, createdAt])
+  @@map("notifications")
+}
+
+model EmailDeliveryAttempt {
+  id              String              @id @default(uuid()) @db.Uuid
+  notificationId  String              @map("notification_id") @db.Uuid
+  recipientUserId String              @map("recipient_user_id") @db.Uuid
+  email           String
+  status          EmailDeliveryStatus @default(PENDING)
+  attemptCount    Int                 @default(0) @map("attempt_count")
+  lastError       String?             @map("last_error")
+  sentAt          DateTime?           @map("sent_at") @db.Timestamptz(3)
+  createdAt       DateTime            @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt       DateTime            @updatedAt @map("updated_at") @db.Timestamptz(3)
+  notification    Notification        @relation(fields: [notificationId], references: [id])
+
+  @@index([status, createdAt])
+  @@map("email_delivery_attempts")
+}
+
+model AuditLog {
+  id          String   @id @default(uuid()) @db.Uuid
+  actorUserId String?  @map("actor_user_id") @db.Uuid
+  action      String
+  entityType  String   @map("entity_type")
+  entityId    String?  @map("entity_id") @db.Uuid
+  oldValues   Json?    @map("old_values")
+  newValues   Json?    @map("new_values")
+  ipAddress   String?  @map("ip_address")
+  userAgent   String?  @map("user_agent")
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  actor       User?    @relation(fields: [actorUserId], references: [id])
+
+  @@index([entityType, entityId, createdAt])
+  @@index([actorUserId, createdAt])
+  @@map("audit_logs")
+}
+
+enum UserRole {
+  STUDENT
+  LECTURER
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+}
+
+enum AcademicStatus {
+  ELIGIBLE
+  INCOMPLETE
+  NOT_ELIGIBLE
+}
+
+enum SupervisorOrder {
+  FIRST
+  SECOND
+}
+
+enum AvailabilityWindowType {
+  RECURRING
+  ONE_TIME
+}
+
+enum AvailabilityExceptionType {
+  CANCELLED
+  MODIFIED
+}
+
+enum BookingRequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  CANCELLED
+  EXPIRED
+}
+
+enum BookingStatus {
+  APPROVED
+  CANCELLED
+  COMPLETED
+}
+
+enum WorkspaceStatus {
+  OPEN
+  COMPLETED
+  LOCKED
+}
+
+enum FeedbackVisibility {
+  STUDENT_VISIBLE
+  PRIVATE
+}
+
+enum RevisionStatus {
+  UPLOADED
+  REVIEWED
+  ARCHIVED
+}
+
+enum AttachmentType {
+  REVISION
+  FEEDBACK
+  SESSION_SUPPORT
+}
+
+enum NotificationType {
+  BOOKING_CREATED
+  BOOKING_APPROVED
+  BOOKING_REJECTED
+  BOOKING_CANCELLED
+  SCHEDULE_CHANGED
+  SESSION_REMINDER
+  REVISION_UPLOADED
+  FEEDBACK_ADDED
+}
+
+enum EmailDeliveryStatus {
+  PENDING
+  SENT
+  FAILED
+  RETRYING
+}
